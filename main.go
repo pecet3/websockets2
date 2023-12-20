@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
+	"net/http"
 
 	"golang.org/x/net/websocket"
 )
@@ -39,9 +39,23 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 		}
 
 		msg := buf[:n]
+		log.Println(string(msg))
+		ws.Write([]byte("received"))
+	}
+}
+
+func (s *Server) broadcast(b []byte) {
+	for ws := range s.conns {
+		go func(ws *websocket.Conn) {
+			if _, err := ws.Write(b); err != nil {
+				log.Println("write error", err)
+			}
+		}(ws)
 	}
 }
 
 func main() {
-	fmt.Println("hello world")
+	server := NewServer()
+	http.Handle("/ws", websocket.Handler(server.handleWS))
+	http.ListenAndServe(":3000", nil)
 }
