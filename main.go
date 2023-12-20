@@ -41,6 +41,8 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 		msg := buf[:n]
 		log.Println(string(msg))
 		ws.Write([]byte("received"))
+
+		s.broadcast(msg)
 	}
 }
 
